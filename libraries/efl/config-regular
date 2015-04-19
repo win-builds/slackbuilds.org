@@ -1,3 +1,5 @@
+export WITH_GSTREAMER1=""
+export WITH_PHYSICS=""
 export WITH_FRIBIDI="--enable-fribidi"
 export WITH_HARFBUZZ="--enable-harfbuzz"
 export WITH_FONTCONFIG=""

@@ -107,9 +107,9 @@ LDFLAGS="${LDFLAGS_WIN} -L/${PREFIX}/lib${LIBDIRSUFFIX}" \
   --build=${BUILD_TRIPLET} \
   --host=${HOST_TRIPLET} \
   --disable-pulseaudio \
-  --disable-physics \
+  ${WITH_PHYSICS} \
   --disable-gstreamer \
-  --disable-gstreamer1 \
+  ${WITH_GSTREAMER1} \
   --enable-lua-old \
   ${WITH_FRIBIDI} \
   ${WITH_HARFBUZZ} \
