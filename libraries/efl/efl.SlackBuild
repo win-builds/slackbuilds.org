@@ -55,8 +55,6 @@ sed -i \
 
 sed -i -e 's/immintrin.h/immintrin-disabled.h/' configure.ac
 
-patch -p1 --verbose < ${CWD}/0001-win32-rely-on-a-pthreads-library-instead-of-the-win3.patch
-
 autoreconf -fiv
 
 CFLAGS="-O2" \
