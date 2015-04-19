@@ -108,7 +108,7 @@ LDFLAGS="${LDFLAGS_WIN}" \
   ${WITH_EOLIAN_CXX} \
   ${DISABLE_STATIC}
 
-make -j4 || make V=1
+make || make -j1 V=1
 make install DESTDIR=$PKG
 
 find $PKG | xargs file | egrep -e "executable|shared object" \
