@@ -9,14 +9,6 @@ VERSION=${VERSION:-1.9.2}
 BUILD=${BUILD:-1}
 TAG=${TAG:-_SBo}
 
-if [ -z "$ARCH" ]; then
-  case "$( uname -m )" in
-    i?86) ARCH=i486 ;;
-    arm*) ARCH=arm ;;
-       *) ARCH=$( uname -m ) ;;
-  esac
-fi
-
 CWD=$(pwd)
 TMP=${TMP:-/tmp/SBo}
 PKG=$TMP/package-$PRGNAM
@@ -92,9 +84,10 @@ LIBS="${LIBS}" \
   ${WITH_EOLIAN_CXX} \
   ${WITH_ELEMENTARY_CODEGEN} \
   ${WITH_ELM_PREFS_CC} \
+  ${WITH_ELDBUS_CODEGEN} \
   ${DISABLE_STATIC}
 
-make -j4 || make V=1
+make -j4 || make -j1 V=1
 make install DESTDIR=$PKG
 
 find $PKG | xargs file | egrep -e "executable|shared object" \

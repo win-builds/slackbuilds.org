@@ -1,0 +1,7 @@
+export DISABLE_STATIC="--disable-static"
+if [ x"${HOST_TRIPLET}" != x"${BUILD_TRIPLET}" ]; then
+  WITH_ELDBUS_CODEGEN="--with-eldbus_codegen=${YYPREFIX_NATIVE}/bin/eldbus-codegen"
+else
+  WITH_ELDBUS_CODEGEN=""
+fi
+export WITH_ELDBUS_CODEGEN
