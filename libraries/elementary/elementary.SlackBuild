@@ -68,6 +68,10 @@ case "${HOST_TRIPLET}" in
   *)          LIBS="" ;;
 esac
 
+if ! [ -e configure ]; then
+  autoreconf -fiv
+fi
+
 CFLAGS="-O2" \
 CXXFLAGS="-O2" \
 LDFLAGS="-L/${PREFIX}/lib${LIBDIRSUFFIXl}" \
