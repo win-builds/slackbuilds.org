@@ -63,19 +63,6 @@ fi
 #   src/modules/datetime_input_ctxpopup/Makefile.am
 # 
 
-if [ "${DO_STATIC:-no}" = "yes" ]; then
-  find . \( -name "*.h" -o -name "*.h.in" \) -exec sed -i '/dllimport/ s/.*/\#define EAPI /' {} +
-
-  for i in ${CWD}/*.patch; do
-    patch -p1 --verbose < $i || exit 1
-  done
-
-  # !PATCH
-  # Default to the software_gdi engine
-  sed -i '/_elm_config->engine = eina_stringshare_add(DEFAULT_ENGINE);/ s/DEFAULT_ENGINE/"software_gdi"/' src/lib/elm_config.c
-
-fi
-
 case "${HOST_TRIPLET}" in
   *-*-mingw*) LIBS=" -levil -liconv -lws2_32" ;;
   *)          LIBS="" ;;
