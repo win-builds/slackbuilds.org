@@ -95,4 +95,3 @@ cat ${CWD}/${PRGNAM}.yypkg.script | sed \
   -e "s/%{BUILD}/${BUILD}/" \
   -e "s/%{DESCR}/${DESCR:-"No description"}/" \
   | yypkg --makepkg --output ${YYOUTPUT} --script - --directory "${PKG}/${PREFIX}"
-
