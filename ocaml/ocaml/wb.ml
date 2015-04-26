@@ -1,6 +1,5 @@
-  let ocaml = add (name, variant)
+  let ocaml_add = add (name, variant)
     ~dir
-    ~dependencies:[ binutils; flexdll; gcc_full; mingw_w64_full ]
     ~version:"4.01.0-trunk"
     ~build:2
     ~sources:[
