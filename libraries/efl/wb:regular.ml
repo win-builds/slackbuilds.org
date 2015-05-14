@@ -1,5 +1,5 @@
     let efl_regular_deps = [
-      libtiff; libpng; giflib; libjpeg;
+      libtiff; libpng; giflib; libjpeg_turbo;
       fontconfig; freetype; lua;
       fribidi; harfbuzz; libsndfile;
       gnutls; curl; c_ares; dbus;
