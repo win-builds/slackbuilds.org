@@ -41,37 +41,25 @@ fi
 
 unset TERM
 
-case "${HOST_TRIPLET}" in
-  *-*-mingw*) LDFLAGS_WIN="-lws2_32" ;;
-  *)          LDFLAGS_WIN="" ;;
-esac
-
-#!PATCH
+# !PATCH
 sed -i \
   '/\/..\/lib\/ecore_evas\/engines/ s/lib/lib'"${LIBDIRSUFFIX}"'/g' \
   src/lib/ecore_evas/ecore_evas_module.c
 
+# !PATCH: our libjpeg is civilized; avoid work-arounds for upstream
 sed -i \
-  -e '/#include "ephysics_private.h"/ d' \
-  -e 's/#ifdef  __cplusplus/#include "ephysics_private.h"\n\0/' \
-  src/lib/ephysics/ephysics_world.cpp
-
-sed -i \
-  -e 's/#include "ephysics_trimesh.h"/#include "ephysics_private.h"\n\0/' \
-  src/lib/ephysics/ephysics_body.cpp
-
-sed -i \
-  -e '/#include "emotion_modules.h"/ d' \
-  -e 's/#include <glib.h>/#include "emotion_modules.h"\n\0/' \
-  src/modules/emotion/gstreamer1/emotion_gstreamer.h
+  -e '/^# define HAVE_BOOLEAN$/ d' \
+  -e '/^# define XMD_H\>/ d' \
+  src/lib/eet/eet_image.c
 
 sed -i -e 's/immintrin.h/immintrin-disabled.h/' configure.ac
 
+sed -i 's/sleep 10/true/' configure.ac
 autoreconf -fiv
 
 CFLAGS="-O2" \
 CXXFLAGS="-O2" \
-LDFLAGS="${LDFLAGS_WIN}" \
+LDFLAGS="-L/${PREFIX}/lib${LIBDIRSUFFIX}" \
 ./configure \
   --prefix=/${PREFIX} \
   --libdir=/${PREFIX}/lib${LIBDIRSUFFIX} \
@@ -109,7 +97,7 @@ LDFLAGS="${LDFLAGS_WIN}" \
   ${DISABLE_STATIC}
 
 make || make -j1 V=1
-make install DESTDIR=$PKG
+make -j1 install DESTDIR=$PKG
 
 find $PKG | xargs file | egrep -e "executable|shared object" \
   | grep ${HOST_EXE_FORMAT} | cut -f 1 -d : \
