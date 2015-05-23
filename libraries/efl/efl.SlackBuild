@@ -52,10 +52,15 @@ sed -i \
   -e '/^# define XMD_H\>/ d' \
   src/lib/eet/eet_image.c
 
-sed -i -e 's/immintrin.h/immintrin-disabled.h/' configure.ac
+if ! [ -e 'configure' ]; then
+  autoreconf -fiv
+fi
 
-sed -i 's/sleep 10/true/' configure.ac
-autoreconf -fiv
+# !PATCH
+sed -i \
+  -e 's/immintrin.h/immintrin-disabled.h/' \
+  -e 's/sleep 10/true/' \
+  configure
 
 CFLAGS="-O2" \
 CXXFLAGS="-O2" \
