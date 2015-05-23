@@ -2,8 +2,9 @@
       add (name, variant)
         ~dir
         ~dependencies:[ efl ]
-        ~version:"1.11.2"
-        ~build:2
-        ~sources:[ Tarball ("${PACKAGE}-${VERSION}.tar.xz", "d756b9c4763beebfbf494b9d2ee42cc2828dd4d8") ]
+        ~version:"1.14.0"
+        ~build:1
+        ~sources:[ Tarball ("${PACKAGE}-${VERSION}.tar.xz", "ef5d839e4112f49b73b35f134c89e81f20065b95") ]
+        ~native_deps:[ "elementary:regular" ]
     in
 
