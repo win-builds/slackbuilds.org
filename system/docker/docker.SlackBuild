@@ -5,11 +5,11 @@
 # Written by Vincent Batts <vbatts@hashbangbash.com>
 
 PRGNAM=docker
-VERSION=${VERSION:-0.11.1}
+VERSION=${VERSION:-1.6.2}
 BUILD=${BUILD:-1}
 TAG=${TAG:-_SBo}
 
-GITHASH=${GITHASH:-fb99f99}
+GITHASH=${GITHASH:-7c8fca2}
 
 if [ -z "$ARCH" ]; then
   case "$( uname -m )" in
@@ -44,12 +44,13 @@ rm -rf $PKG
 mkdir -p $TMP $PKG $OUTPUT
 cd $TMP
 rm -rf $PRGNAM-$VERSION
-tar xvf $CWD/v${VERSION}.tar.gz || tar xvz $PRGNAM-$VERSION.tar.gz
+tar xvf $CWD/v${VERSION}.tar.gz || tar xvf $CWD/$PRGNAM-$VERSION.tar.gz
 cd $PRGNAM-$VERSION
 chown -R root:root .
-find -L . \
+# the have symlinks in their testdata that goes outside the context of this build
+find . ! -type l \
  \( -perm 777 -o -perm 775 -o -perm 750 -o -perm 711 -o -perm 555 \
-  -o -perm 511 \) -exec chmod 755 {} \; -o \
+  -o -perm 511 \) -exec chmod 755 {} \; -o ! -type l \
  \( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
  -o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
 
@@ -57,13 +58,13 @@ unset GOPATH
 
 # back out this commit, which causes btrfs headers to not be found on slackware
 # since btrfs-progs removes the <btrfs/ioctl.h> header.
-# https://github.com/dotcloud/docker/commit/6922f1be08111d889b0585b763b08f92d7a55e05
+# https://github.com/docker/docker/commit/6922f1be08111d889b0585b763b08f92d7a55e05
 patch -p1 -R < $CWD/docker-btrfs.patch
 
-mkdir -p ${PKG}/usr/share/gocode/src/github.com/dotcloud/docker
-cp -a .  ${PKG}/usr/share/gocode/src/github.com/dotcloud/docker/
+mkdir -p ${PKG}/usr/share/gocode/src/github.com/docker/docker
+cp -a .  ${PKG}/usr/share/gocode/src/github.com/docker/docker/
 
-GOPATH=${PKG}/usr/share/gocode:$(pwd)/vendor \
+AUTO_GOPATH=1 \
 DOCKER_GITCOMMIT="$GITHASH" \
 	./hack/make.sh dynbinary
 
@@ -77,7 +78,7 @@ install -D --mode 0644 $CWD/config/docker.logrotate $PKG/etc/logrotate.d/docker.
 install -D --mode 0755 $CWD/config/rc.docker $PKG/etc/rc.d/rc.docker.new
 
 mkdir -p $PKG/usr/doc/$PRGNAM-$VERSION
-cp -a AUTHORS CONTRIBUTING.md CHANGELOG.md FIXME LICENSE README.md NOTICE VERSION \
+cp -a AUTHORS CONTRIBUTING.md CHANGELOG.md LICENSE README.md NOTICE VERSION \
   $PKG/usr/doc/$PRGNAM-$VERSION
 cat $CWD/$PRGNAM.SlackBuild > $PKG/usr/doc/$PRGNAM-$VERSION/$PRGNAM.SlackBuild
 

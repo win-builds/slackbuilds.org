@@ -1,0 +1,12 @@
+PRGNAM="man-db"
+VERSION="2.7.1"
+HOMEPAGE="http://www.nongnu.org/man-db/"
+DOWNLOAD="http://download.savannah.gnu.org/releases/man-db/man-db-2.7.1.tar.xz \
+          http://download.savannah.gnu.org/releases/libpipeline/libpipeline-1.4.0.tar.gz"
+MD5SUM="88d32360e2ed18e05de9b528ad336fd8 \
+        660f4ac9340834a231d1516746d03d28"
+DOWNLOAD_x86_64=""
+MD5SUM_x86_64=""
+REQUIRES=""
+MAINTAINER="B. Watson"
+EMAIL="yalhcru@gmail.com"

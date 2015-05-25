@@ -23,22 +23,16 @@
 #  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 PRGNAM=pdf2png
-VERSION=${VERSION:-0.2}
-BUILD=${BUILD:-1}
+VERSION=${VERSION:-0.5}
+BUILD=${BUILD:-2}
 TAG=${TAG:-_SBo}
 
-CWD=${CWD:-$(pwd)}
+CWD=$(pwd)
 TMP=${TMP:-/tmp/SBo}
 PKG=$TMP/package-$PRGNAM
 OUTPUT=${OUTPUT:-/tmp}
 
-if [ -z "$ARCH" ]; then
-  case "$( uname -m )" in
-    i?86) export ARCH=i486 ;;
-    arm*) export ARCH=arm ;;
-       *) export ARCH=$( uname -m ) ;;
-  esac
-fi
+ARCH=noarch
 
 set -e
 
@@ -46,7 +40,7 @@ rm -rf $PKG
 mkdir -p $TMP $PKG $OUTPUT
 cd $TMP
 rm -rf $PRGNAM-$VERSION
-tar xvf $CWD/$PRGNAM-$VERSION.tar.gz
+tar xvf $CWD/$VERSION.tar.gz
 cd $PRGNAM-$VERSION
 chown -R root:root .
 find -L . \
@@ -55,11 +49,14 @@ find -L . \
  \( -perm 666 -o -perm 664 -o -perm 600 -o -perm 444 -o -perm 440 -o -perm 400 \) \
  -exec chmod 644 {} \;
 
+# Patch for using python3 in header
+sed -i 's|#!/usr/bin/python3|#!/usr/bin/python|' bin/$PRGNAM.py
+
 make install DESTDIR=$PKG
 
 mkdir -p $PKG/usr/doc/$PRGNAM-$VERSION
 cp -a \
-  README.md LICENSE \
+  README.md COPYING \
   $PKG/usr/doc/$PRGNAM-$VERSION
 cat $CWD/$PRGNAM.SlackBuild > $PKG/usr/doc/$PRGNAM-$VERSION/$PRGNAM.SlackBuild
 

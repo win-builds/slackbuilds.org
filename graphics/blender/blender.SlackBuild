@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# Slackware build script for Blender
+
+# Ryan P.C. McQuen | Everett, WA | ryan.q@linux.com
+
 # Copyright 2008-2013  Robby Workman  Northport, AL, USA
 # All rights reserved.
 #
@@ -23,11 +27,11 @@
 # Thanks to Giorgio Peron <giorgio.peron@gmail.com> for some build tips
 
 PRGNAM=blender
-VERSION=${VERSION:-2.69}
+VERSION=${VERSION:-2.74}
 BUILD=${BUILD:-1}
 TAG=${TAG:-_SBo}
 
-SRCVERSION=$VERSION-linux-glibc211
+SRCVERSION=${VERSION}-linux-glibc211
 
 # We'll remove the libGL* shared libaries that are shipped with blender (and
 # instead use the ones that are shipped with Slackware's Xorg)

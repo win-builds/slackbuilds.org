@@ -1,14 +1,14 @@
 PRGNAM="virtualbox"
-VERSION="4.3.10"
+VERSION="4.3.24"
 HOMEPAGE="http://www.virtualbox.org"
-DOWNLOAD="http://download.virtualbox.org/virtualbox/4.3.10/VirtualBox-4.3.10.tar.bz2 \
-          http://download.virtualbox.org/virtualbox/4.3.10/VBoxGuestAdditions_4.3.10.iso \
-          http://download.virtualbox.org/virtualbox/4.3.10/UserManual.pdf \
-          http://download.virtualbox.org/virtualbox/4.3.10/SDKRef.pdf"
-MD5SUM="c3e9e61d5ed7c672bfc747fb8df4367b \
-        1c5ff3a2cc9ff615aa79788c5e771fdc \
-        cd6d2ddac7f115717a3fe788000acbb8 \
-        d69e417a631f7ecaf56d942ebfb335f8"
+DOWNLOAD="http://download.virtualbox.org/virtualbox/4.3.24/VirtualBox-4.3.24.tar.bz2 \
+          http://download.virtualbox.org/virtualbox/4.3.24/VBoxGuestAdditions_4.3.24.iso \
+          http://download.virtualbox.org/virtualbox/4.3.24/UserManual.pdf \
+          http://download.virtualbox.org/virtualbox/4.3.24/SDKRef.pdf"
+MD5SUM="c9711ee4a040de131c638168d321f3ff \
+        a1a4ccd53257c881214aa889f28de9b6 \
+        c087b4a00b8d475fdfdc50fab47c1231 \
+        6ca97ffd038cb760bff403b615329009"
 DOWNLOAD_x86_64="UNTESTED"
 MD5SUM_x86_64=""
 REQUIRES="acpica virtualbox-kernel"

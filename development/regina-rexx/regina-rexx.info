@@ -1,8 +1,12 @@
 PRGNAM="regina-rexx"
-VERSION="3.7"
+VERSION="3.9.1"
 HOMEPAGE="http://regina-rexx.sourceforge.net/"
-DOWNLOAD="http://downloads.sourceforge.net/regina-rexx/Regina-REXX-3.7.tar.gz"
-MD5SUM="276235e489f7f8596cb9c6e00f8a61f3"
+DOWNLOAD="http://downloads.sourceforge.net/regina-rexx/Regina-REXX-3.9.1.tar.gz \
+          http://sourceforge.net/projects/regina-rexx/files/regina-documentation/3.9.1/regina.pdf \
+          http://sourceforge.net/projects/regina-rexx/files/regina-documentation/3.9.1/regutil.pdf"
+MD5SUM="ead9355e9207567bb45ce015fed700b4 \
+        f6b591d6986395c3db47a92712ee53f6 \
+        a31a31f235520dbee857cf87e0dc4db8"
 DOWNLOAD_x86_64=""
 MD5SUM_x86_64=""
 REQUIRES=""

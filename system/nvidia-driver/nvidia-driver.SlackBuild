@@ -3,7 +3,7 @@
 # Slackware build script for nvidia-driver
 
 # Copyright 2007-2011 Heinz Wiesinger, Amsterdam, The Netherlands
-# Copyright 2012-2013 Edward W. Koenig, Vancouver, WA, USA
+# Copyright 2012-2015 Edward W. Koenig, Vancouver, WA, USA
 # All rights reserved.
 #
 # Redistribution and use of this script, with or without modification, is
@@ -23,34 +23,14 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# ChangeLog
-# ------------------------------------------------------------------------------
-# 1.0	20-MAR-2011	New Maintainer: Edward W. Koenig <kingbeowulf@gmail.com>
-# 1.1	10-APR-2011	updated to new version, testing 13.37rc4.6692
-# 1.2   27-MAY-2011	new version, allow multilib option, minor edits
-# 1.2.1 20-JUNE-2011	minor edits, thanks to Robby and Roberto
-# 1.5	01-JULY-2011	new version, single driver download, add switch to select
-#			pure x86_64 or x86_64 with 32-bit compatibility.
-# 1.6	27-AUG-2011	version bump, minor edits
-# 1.7	21-OCT-2011	version bump
-# 1.8   24-MAR-2012	version bump, fix to nvidia-switch thanks to Phill W.
-# 1.9   02-AUG-2012	version bmp, fixes, updates, nvidia-switch for install/uninstall only
-# 2.0	21-AUG-2012	new version (important security fix), missing vdpau-nvidia, dropped *.h
-# 2.1	25-AUG-2012	new version -Long Lived Branch, fixed symlinks (per Das email)
-# 2.2	22-NOV-2012	new version -Long Lived Branch. Updates: libs, apps
-# 2.3	15-FEB-2013	new version -Long Lived Branch.
-# 2.4	19-MAY-2013	new version -Long Lived Branch.
-# 2.6   20-OCT-2013	new version -Long Lived Branch, add new lib, fix nvidia-switch --remove
-# 3.0   13-NOV-2013	new version (LLB), update libs
-# 3.1	12-APR-2014	new version (LLB), update libs
+# see changelog.txt
 
 PRGNAM=nvidia-driver
-VERSION=${VERSION:-331.67}
-MVERS=331
+VERSION=${VERSION:-346.59}
+MVERS=340
 BUILD=${BUILD:-1}
 TAG=${TAG:-_SBo}
 CPROXY=${CPROXY:-no}
-OPTAPPS=${OPTAPPS:-no}
 
 if [ -z "$ARCH" ]; then
   case "$( uname -m )" in
@@ -109,7 +89,7 @@ find -L . \
  \( -perm 777 -o -perm 775 -o -perm 750 -o -perm 711 -o -perm 555 \
   -o -perm 511 \) -exec chmod 755 {} \; -o \
  \( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
- -o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
+  -o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
 
 mkdir -p $PKG/usr/lib$LIBDIRSUFFIX/xorg/modules/{drivers,extensions} \
   $PKG/etc/OpenCL/vendors/ $PKG/usr/lib$LIBDIRSUFFIX/tls \
@@ -117,25 +97,32 @@ mkdir -p $PKG/usr/lib$LIBDIRSUFFIX/xorg/modules/{drivers,extensions} \
   $PKG/usr/include/GL
 
 # Get all the libs to the right place
-# Ignore libEGL and libGLES support; phones/tablets etc.
 install -m 755 nvidia_drv.so $PKG/usr/lib$LIBDIRSUFFIX/xorg/modules/drivers/
 install -m 755 libcuda.so.$VERSION $PKG/usr/lib$LIBDIRSUFFIX/
 install -m 755 libglx.so.$VERSION $PKG/usr/lib$LIBDIRSUFFIX/xorg/modules/extensions/libglx.so.$VERSION-nvidia
 install -m 755 libGL.so.$VERSION $PKG/usr/lib$LIBDIRSUFFIX/libGL.so.$VERSION-nvidia
-install -m 755 libGL.la $PKG/usr/lib$LIBDIRSUFFIX/
+install -m 755 libGL.la $PKG/usr/lib$LIBDIRSUFFIX/libGL.la-nvidia
+install -m 755 libEGL.so.$VERSION $PKG/usr/lib$LIBDIRSUFFIX/libEGL.so.$VERSION-nvidia
 install -m 755 libnvcuvid.so.$VERSION $PKG/usr/lib$LIBDIRSUFFIX/
 install -m 755 libnvidia-cfg.so.$VERSION $PKG/usr/lib$LIBDIRSUFFIX/
 install -m 755 libnvidia-compiler.so.$VERSION $PKG/usr/lib$LIBDIRSUFFIX/
+install -m 755 libnvidia-eglcore.so.$VERSION $PKG/usr/lib$LIBDIRSUFFIX
 install -m 755 libnvidia-encode.so.$VERSION $PKG/usr/lib$LIBDIRSUFFIX/
 install -m 755 libnvidia-fbc.so.$VERSION $PKG/usr/lib$LIBDIRSUFFIX/
 install -m 755 libnvidia-glcore.so.$VERSION $PKG/usr/lib$LIBDIRSUFFIX/
 install -m 755 libnvidia-ifr.so.$VERSION $PKG/usr/lib$LIBDIRSUFFIX/
+install -m 755 libnvidia-glsi.so.$VERSION $PKG/usr/lib$LIBDIRSUFFIX/
 install -m 755 libnvidia-ml.so.$VERSION $PKG/usr/lib$LIBDIRSUFFIX/
 install -m 755 libnvidia-opencl.so.$VERSION $PKG/usr/lib$LIBDIRSUFFIX/
 install -m 755 tls/libnvidia-tls.so.$VERSION $PKG/usr/lib$LIBDIRSUFFIX/tls/
 install -m 755 libOpenCL.so.1.0.0 $PKG/usr/lib$LIBDIRSUFFIX/
 
-# For 8-series GPU if libwfb.so is missing (ie older X servers).
+# For nvidia-settings GUI support
+install -m 755 libnvidia-gtk2.so.$VERSION $PKG/usr/lib$LIBDIRSUFFIX/
+install -m 755 libnvidia-gtk3.so.$VERSION $PKG/usr/lib$LIBDIRSUFFIX/
+
+# 8-series GPU is No longer supported so just drop this
+# in until nvidia decides to remove it (see README.txt).
 install -m 755 libnvidia-wfb.so.$VERSION $PKG/usr/lib$LIBDIRSUFFIX/xorg/modules/libnvidia-wfb.so.$VERSION-nvidia
 
 # Don't forget separate libvdpau package on SBo.
@@ -149,12 +136,15 @@ if [ "$ARCH" = "x86_64" -a "${COMPAT32}" = "yes" ]; then
 
   install -m 755 32/libcuda.so.$VERSION $PKG/usr/lib/
   install -m 755 32/libGL.so.$VERSION $PKG/usr/lib/libGL.so.$VERSION-nvidia
-  install -m 755 32/libGL.la $PKG/usr/lib/
+  install -m 755 32/libGL.la $PKG/usr/lib/libGL.la-nvidia
+  install -m 755 32/libEGL.so.$VERSION $PKG/usr/lib/libEGL.so.$VERSION-nvidia
   install -m 755 32/libnvcuvid.so.$VERSION $PKG/usr/lib/
   install -m 755 32/libnvidia-compiler.so.$VERSION $PKG/usr/lib/
+  install -m 755 32/libnvidia-eglcore.so.$VERSION $PKG/usr/lib/
   install -m 755 32/libnvidia-encode.so.$VERSION $PKG/usr/lib/
   install -m 755 32/libnvidia-fbc.so.$VERSION $PKG/usr/lib/
   install -m 755 32/libnvidia-glcore.so.$VERSION $PKG/usr/lib/
+  install -m 755 32/libnvidia-glsi.so.$VERSION $PKG/usr/lib/
   install -m 755 32/libnvidia-ifr.so.$VERSION $PKG/usr/lib/
   install -m 755 32/libnvidia-opencl.so.$VERSION $PKG/usr/lib/
   install -m 755 32/tls/libnvidia-tls.so.$VERSION $PKG/usr/lib/tls/
@@ -265,8 +255,9 @@ cd $TMP/nvidia-xconfig-$VERSION
   install -m 644 _out/Linux_$TARGET/nvidia-xconfig.1.gz $PKG/usr/man/man1/
 cd -
 
-# Some new optional "useless" utilities. FIXME: Needs cleanup at a later date.
-if [ "${OPTAPPS}" = "yes" ]; then
+# Some new optional "useless" utilities, such as laptop GPU switching
+# nvidia-modprobe needed to create device nodes, see README!
+# FIXME: Needs cleanup at a later date.
 
 # Compiling nvidia-modprobe from source
   cd $TMP/nvidia-modprobe-$VERSION
@@ -296,7 +287,6 @@ if [ "${OPTAPPS}" = "yes" ]; then
     install -m 755 _out/Linux_$TARGET/nvidia-persistenced $PKG/usr/bin/
     install -m 644 _out/Linux_$TARGET/nvidia-persistenced.1.gz $PKG/usr/man/man1/
   cd -
-fi
 
 # Bash script to cleanly install (in doinst.sh) and uninstall the nvidia files
 # so we don't stomp on the overlapping xorg files.
@@ -311,8 +301,8 @@ else
 fi
 
 # These update placeholders and correct wrong paths
-sed -i "s|__LIBGL_PATH__|/usr/lib$LIBDIRSUFFIX/|" $PKG/usr/lib$LIBDIRSUFFIX/libGL.la
-sed -i "s|/usr/X11R6/lib|/usr/lib$LIBDIRSUFFIX/|" $PKG/usr/lib$LIBDIRSUFFIX/libGL.la
+sed -i "s|__LIBGL_PATH__|/usr/lib$LIBDIRSUFFIX/|" $PKG/usr/lib$LIBDIRSUFFIX/libGL.la-nvidia
+sed -i "s|/usr/X11R6/lib|/usr/lib$LIBDIRSUFFIX/|" $PKG/usr/lib$LIBDIRSUFFIX/libGL.la-nvidia
 sed -i "s|__UTILS_PATH__|/usr/bin|" \
   $PKG/usr/share/applications/nvidia-settings.desktop
 sed -i "s|__PIXMAP_PATH__|/usr/share/pixmaps|" \
@@ -322,11 +312,17 @@ sed -i "s|__NVIDIA_SETTINGS_DESKTOP_CATEGORIES__|Application;Settings;|" \
 
 mkdir -p $PKG/usr/doc/$PRGNAM-$VERSION
 cd $TMP/$SRCNAM
-
 cp -a LICENSE NVIDIA_Changelog README.txt html $PKG/usr/doc/$PRGNAM-$VERSION
 cp -a nvidia-persistenced-init.tar.bz2 $PKG/usr/doc/$PRGNAM-$VERSION
 cat $CWD/README > $PKG/usr/doc/$PRGNAM-$VERSION/README.Slackware
 cat $CWD/$PRGNAM.SlackBuild > $PKG/usr/doc/$PRGNAM-$VERSION/$PRGNAM.SlackBuild
+
+# configs, nvidia-settings application profile support (see documention for use).
+mkdir -p $PKG/usr/share/nvidia
+install -m 755 nvidia-application-profiles-$VERSION-key-documentation $PKG/usr/share/nvidia/
+install -m 755 nvidia-application-profiles-$VERSION-rc $PKG/usr/share/nvidia/
+install -m 755 monitoring.conf $PKG/usr/share/nvidia/
+install -m 755 pci.ids $PKG/usr/share/nvidia/
 
 mkdir -p $PKG/install
 sed "s/PKGVERSION/$VERSION/g" $CWD/slack-desc > $PKG/install/slack-desc

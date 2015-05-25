@@ -1,10 +1,10 @@
     let bullet = add (name, variant)
       ~dir
       ~dependencies:[]
-      ~version:"2.82"
+      ~version:"2.83.4"
       ~build:1
       ~sources:[
-        Tarball ("${PACKAGE}-${VERSION}-r2704.tgz", "a0867257b9b18e9829bbeb4c6c5872a5b29d1d33");
+        Tarball ("${PACKAGE}-${VERSION}.tar.gz", "96b8d18ebecc87e749247702d4022fcc3385ffd6");
       ]
     in
 

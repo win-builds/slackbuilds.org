@@ -1,5 +1,6 @@
 # Files mentioned in this file will be ignored by git
-*.sw[po]
+*.rpm
+*.swp
 *.tar.gz
 *.tar.gz.asc
 *.tar.bz2
@@ -14,5 +15,7 @@
 *.pk3
 *.run
 *.Z
+*.deb
+*.jar
 *~
 .directory

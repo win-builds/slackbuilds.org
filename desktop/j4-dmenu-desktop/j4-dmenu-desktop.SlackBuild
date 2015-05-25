@@ -6,15 +6,25 @@
 
 # Licensed under the WTFPL. See http://www.wtfpl.net/txt/copying/ for details.
 
-# Zip file created with:
-# wget -O j4-dmenu-desktop-$(date +%Y%m%d).zip https://github.com/enkore/j4-dmenu-desktop/archive/master.zip
+# 20150512 bkw:
+# - Update for 2.12 release.
+# - Replace my man page with upstream's (from git).
+# - Escape dashes in terminal name, in man page (MANTERM).
+# - Replace no_interactive_shell.diff with sed -i.
+
+# 20140724 bkw: updated to 20140724 snapshot.
+# - Default to TERMINAL=xterm if i3-sensible-terminal not installed
+#   on build host. Can still set TERMINAL in env to override.
+# - Fix hangs caused by using an interactive shell when there's no
+#   controlling terminal. Thanks to crumb on ##slackware for the
+#   bug report.
 
 # 20140310 bkw: updated to 20140310 snapshot.
 # - Added man page
 # - Added default terminal selection
 
 PRGNAM=j4-dmenu-desktop
-VERSION=${VERSION:-20140310}
+VERSION=${VERSION:-2.12}
 BUILD=${BUILD:-1}
 TAG=${TAG:-_SBo}
 
@@ -50,9 +60,9 @@ set -e
 rm -rf $PKG
 mkdir -p $TMP $PKG $OUTPUT
 cd $TMP
-rm -rf $PRGNAM-master
-unzip $CWD/$PRGNAM-$VERSION.zip
-cd $PRGNAM-master
+rm -rf $PRGNAM-r$VERSION
+tar xvf $CWD/$PRGNAM-r$VERSION.tar.gz || tar xvf $CWD/r$VERSION.tar.gz
+cd $PRGNAM-r$VERSION
 chown -R root:root .
 find -L . \
  \( -perm 777 -o -perm 775 -o -perm 750 -o -perm 711 -o -perm 555 \
@@ -60,8 +70,24 @@ find -L . \
  \( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
  -o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
 
-# for users who don't use i3, let them pick the default terminal.
-TERMINAL="${TERMINAL:-i3-sensible-terminal}"
+# For some reason, j4-dmenu-desktop uses "bash -i -c <command>" to execute
+# the user's choice. bash -i means interactive shell... which causes it to
+# hang if there's no controlling terminal. No idea why upstream wanted the -i
+# option in the first place, I've asked but not gotten an answer.
+sed -i '/execl(shell/s|"-i", *||' src/*.hh
+
+# For users who don't use i3, let them pick the default terminal.
+# If TERMINAL not set, and i3-sensible-terminal not installed, just
+# default to xterm.
+if which i3-sensible-terminal &>/dev/null; then
+  DEFTERM="i3-sensible-terminal"
+else
+  DEFTERM="xterm"
+fi
+
+TERMINAL="${TERMINAL:-$DEFTERM}"
+MANTERM="$( echo $TERMINAL | sed 's,-,\\\\-,g' )"
+echo "Using TERMINAL=$TERMINAL"
 sed -i "s,i3-sensible-terminal,$TERMINAL,g" src/Main.hh
 
 # Don't use 'make install', it wants to run the tests, which require
@@ -81,17 +107,17 @@ cd build
   install -m0755 -s $PRGNAM $PKG/usr/bin/$PRGNAM
 cd ..
 
-# man page written for this SlackBuild.
+# man page taken from upstream git.
 mkdir -p $PKG/usr/man/man1
-sed "s,_TERMINAL_,$TERMINAL,g" < $CWD/$PRGNAM.1 | \
+sed "s,_TERMINAL_,$MANTERM,g" < $CWD/$PRGNAM.1 | \
   gzip -9c > $PKG/usr/man/man1/$PRGNAM.1.gz
 
 mkdir -p $PKG/usr/doc/$PRGNAM-$VERSION
-cp -a CHANGELOG LICENSE README.md $PRGNAM.pod $PKG/usr/doc/$PRGNAM-$VERSION
+cp -a CHANGELOG LICENSE README* $PKG/usr/doc/$PRGNAM-$VERSION
 cat $CWD/$PRGNAM.SlackBuild > $PKG/usr/doc/$PRGNAM-$VERSION/$PRGNAM.SlackBuild
 
 mkdir -p $PKG/install
-cat $CWD/slack-desc > $PKG/install/slack-desc
+sed "s,_TERMINAL_,$TERMINAL,g" $CWD/slack-desc > $PKG/install/slack-desc
 
 cd $PKG
 /sbin/makepkg -l y -c n $OUTPUT/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.${PKGTYPE:-tgz}

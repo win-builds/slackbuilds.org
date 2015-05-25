@@ -23,7 +23,7 @@
 #  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 PRGNAM=six
-VERSION=${VERSION:-1.6.1}
+VERSION=${VERSION:-1.8.0}
 BUILD=${BUILD:-1}
 TAG=${TAG:-_SBo}
 
@@ -53,7 +53,7 @@ find -L . \
  \( -perm 777 -o -perm 775 -o -perm 750 -o -perm 711 -o -perm 555 \
   -o -perm 511 \) -exec chmod 755 {} \; -o \
  \( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
- -o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
+  -o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
 
 python setup.py install --root=$PKG
 
@@ -64,7 +64,7 @@ fi
 find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
   | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
 
-# Build and install documentation if sphinx and pygments are installed.
+# Build and install documentation if sphinx is installed.
 if $(python -c 'import sphinx.pygments_styles' 2>/dev/null); then
   make -j1 -C documentation man singlehtml
   install -D -m 0644 documentation/_build/man/$PRGNAM.1 $PKG/usr/man/man1/$PRGNAM.1

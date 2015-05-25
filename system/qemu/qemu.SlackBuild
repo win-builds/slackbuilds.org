@@ -33,16 +33,24 @@
 # 1.3   03-NOV-2013     updated to 1.6.1
 # 1.4   28-APR-2014     updated to 2.0.0 (thanks Callum Davies <calrogman@gmail.com>), added useful options,
 #                       clean ups, libusb version check.
-# 1.4a 04-MAY-2014     fixed typos thanks to sandb0y
+# 1.4a  04-MAY-2014     fixed typos thanks to sandb0y
+# 1.5   10-AUG-2014		updated to new version, watch for legacy "gotchas"
+# 1.6	18-NOV-2014		updated version, last of the 2.1 series, changed defaults per SBo list
+# 1.6a	23-NOV-2014		added overlooked AUDIODRIVERS switch per SBo list
+# 1.7	01-JAN-2015	    updated to 2.2.0 ; build and link static libusb option (rw, tm, SBo list)
+# 1.8	27-APR-2015     updated to version 2.3.0
+# 1.9   14-MAY-2015     patched for "Venom" CVE-2015-3456 http://git.qemu.org/?p=qemu.git;a=commitdiff;h=e907746266721f305d67bc0718795fedee2e824c
 
 PRGNAM=qemu
-VERSION=${VERSION:-2.0.0}
+VERSION=${VERSION:-2.3.0}
 BUILD=${BUILD:-2}
 TAG=${TAG:-_SBo}
 
 KVMGROUP=${KVMGROUP:-users}
 TARGETS=${TARGETS:-some}
-VNC_ENABLE=${VNC_ENABLE:-no}
+VNC_ENABLE=${VNC_ENABLE:-yes}
+AUDIODRIVERS=${AUDIODRIVERS:-alsa,oss,sdl,esd}
+LIBUSB=${LIBUSB:-no}
 
 if [ -z "$ARCH" ]; then
   case "$( uname -m )" in
@@ -90,7 +98,7 @@ find -L . \
  \( -perm 777 -o -perm 775 -o -perm 750 -o -perm 711 -o -perm 555 \
   -o -perm 511 \) -exec chmod 755 {} \; -o \
  \( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
- -o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
+  -o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
 
 # Remove double CFLAGS
 sed -i "s|^\ \ CFLAGS=\"-O2\ |  CFLAGS=\"|" configure
@@ -103,40 +111,36 @@ else
   targets="--target-list=i386-softmmu,x86_64-softmmu,i386-linux-user,x86_64-linux-user,arm-softmmu,arm-linux-user,armeb-linux-user"
 fi
 
-# Optional VNC support for those who want it (adjust options as needed); use VNC_ENABLE=yes
+# To omit VNC capability, use VNC_ENABLE=no
 if [ "$VNC_ENABLE" = "yes" ]; then
   with_vnc="--enable-vnc --enable-vnc-tls --enable-vnc-jpeg"
 else
   with_vnc="--disable-vnc"
 fi
 
-# Slackware-14.1 ships with an ancient libusb. Check for updates to enable.
-if pkg-config --atleast-version=1.0.13 libusb-1.0 ; then
-  with_libusb="--enable-libusb"
-  echo
-else
-  with_libusb="--disable-libusb"
+# Build libusb-1.0.19 statically so that usb passthrough will work;
+# not needed if you upgrade the default libdir.
+USBSTATIC=""
+if [ "$LIBUSB" = "yes" ]; then
+  tar xf $CWD/libusb-1.0.19.tar.xz
+  cd libusb-1.0.19
+  CFLAGS="$SLKCFLAGS" \
+  ./configure \
+    --prefix=$TMP/$PRGNAM-$VERSION/libusb-static \
+    --build=$ARCH-slackware-linux \
+    --disable-shared \
+    --enable-static
+  make install
+  cd ..
+  sed -i 's/--cflags libusb-1.0/\0 --static/' configure
+  sed -i 's/--libs libusb-1.0/\0 --static/' configure
+  USBSTATIC="$TMP/$PRGNAM-$VERSION/libusb-static/lib/pkgconfig"
 fi
 
-# check if spice is there
-if pkg-config --exists spice-server ; then
-  with_spice="--enable-spice"
-else
-  with_spice="--disable-spice"
-fi
+# patch Venom bug CVE-2015-3456
+patch -p1 < $CWD/qemu_venom.patch
 
-# check if usbredir is there
-if pkg-config --exists libusbredirhost ; then
-  with_usbredir="--enable-usb-redir"
-else
-  with_usbredir="--disable-usb-redir"
-fi
-
-# check if device-tree-compiler is installed. Some targets need this so consider installing it from SBo.
-if ls /var/log/packages/device-tree-compiler-* 1>/dev/null 2>/dev/null ; then
-  with_fdt="--enable-fdt"
-fi
-
+PKG_CONFIG_PATH+="${USBSTATIC}" \
 CFLAGS="$SLKCFLAGS" \
 CXXFLAGS="$SLKCFLAGS" \
 ./configure \
@@ -151,31 +155,25 @@ CXXFLAGS="$SLKCFLAGS" \
   --disable-debug-info \
   --enable-virtfs \
   --enable-sdl \
-  --audio-drv-list=alsa,oss,sdl,esd \
-  $with_libusb \
+  --audio-drv-list=${AUDIODRIVERS} \
   $with_vnc \
-  $targets \
-  $with_spice \
-  $with_usbredir \
-  $with_fdt
+  $targets
 
-#usb passthrough may fail since Slackware's libusb is too old.
-# other useful options:
-# --enable-vde             enable support for vde network
-# --enable-libnfs          enable nfs support
-# --enable-vde             enable support for vde network
-# --enable-bluez           enable bluez stack connectivity
+# Make these first; otherwise make won't run in parallel.
+make config-all-devices.mak config-all-disas.mak
 
-make V=1 OS_CFLAGS="$SLKCFLAGS"
-
+make V=1
 make install DESTDIR=$PKG
+
+# Remove empty /var
+rm -rf $PKG/var/run
 
 # install some udev rules for /dev/kvm
 mkdir -p $PKG/lib/udev/rules.d/
 sed "s/@GROUP@/$KVMGROUP/" $CWD/65-kvm.rules \
   > $PKG/lib/udev/rules.d/65-kvm.rules
 
-find $PKG | xargs file | grep -e "executable" -e "shared object" | grep ELF \
+find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
   | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
 
 # create a symlink for qemu-kvm to support aqemu and such frontends
@@ -192,7 +190,6 @@ fi
 mkdir -p $PKG/usr/doc/$PRGNAM-$VERSION
 cp -a Changelog COPYING* CODING_STYLE HACKING LICENSE MAINTAINERS README qemu-*.html docs/* \
   $PKG/usr/doc/$PRGNAM-$VERSION
-
 cat $CWD/$PRGNAM.SlackBuild > $PKG/usr/doc/$PRGNAM-$VERSION/$PRGNAM.SlackBuild
 
 mkdir -p $PKG/install

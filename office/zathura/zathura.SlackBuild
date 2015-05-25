@@ -22,6 +22,15 @@
 #  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 #  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# 20150511 bkw:
+# - Version bump 0.3.3. The poppler plugin is still on 0.2.5.
+# - Make the poppler plugin's pdf.so a symlink. Will do the same
+#   for zathura-pdf-mupdf, to allow switching between the two without
+#   reinstalling packages. This wouldn't have worked with older versions,
+#   due to changes in glib's g_file_test() between glib 1.x and 2.x.
+# - Upstream started using -fdiagnostics-color=always, which is only
+#   supported in newer gcc versions. Get rid of it.
+
 # Updated 20130617 by B. Watson <yalhcru@gmail.com>:
 # - Updated for v0.2.3
 
@@ -37,7 +46,7 @@
 # - fix homepage URL
 
 PRGNAM=zathura
-VERSION=${VERSION:-0.2.3}
+VERSION=${VERSION:-0.3.3}
 BUILD=${BUILD:-1}
 TAG=${TAG:-_SBo}
 
@@ -74,7 +83,7 @@ set -eu
 # plugins. This build includes the default PDF plugin, without which zathura
 # is completely useless.
 PLUGIN=$PRGNAM-pdf-poppler
-PLUGINVER=${PLUGINVER:-$VERSION}
+PLUGINVER=${PLUGINVER:-0.2.5}
 
 rm -rf $PKG
 mkdir -p $TMP $PKG $OUTPUT
@@ -89,7 +98,36 @@ find -L . \
  \( -perm 666 -o -perm 664 -o -perm 600 -o -perm 444 -o -perm 440 -o -perm 400 \) \
  -exec chmod 644 {} \;
 
+# Work around a bug in Slackware's ghostscript.
+# http://bugs.ghostscript.com/show_bug.cgi?id=692891
+#
+# Supposedly this was fixed, but I'm getting stack traces that look just
+# like those. The trouble is, if any of the plugins depends on libgs.so,
+# that library gets loaded during zathura's "scan for plugins" phase.
+# If libjpeg.so wasn't already loaded, it gets loaded and mangled by
+# libgs. This happens *before* zathura knows which plugin matches the file
+# we're trying to view. Now, the plugin is chosen based on the file's
+# mime type. If said plugin *isn't* the one using libgs, but it *does*
+# use libjpeg, *boom* segfault.
+#
+# What I found is that the postscript plugin uses libsceptre, which uses
+# libgs... and the mupdf and comicbook plugins use libjpeg.  The end result
+# is that the mupdf and cb plugins crash the first time they try to load
+# a jpeg from the pdf/cbr, *but* only if the ps plugin is installed!
+# Both plugins work fine if the ps plugin is removed.
+#
+# I found that 'export LD_PRELOAD=/usr/lib/libjpeg.so' stops the
+# segfaulting, while not affecting the ps plugin. The patch below is
+# basically just the C equivalent: use dlopen() to load libjpeg.so before
+# scanning for plugins. Yes, it's a hack, that depends on implementation
+# specific details, but the alternative would be to try and talk Pat V
+# into patching and rebuilding his ghostscript and/or libsceptre packages,
+# which he won't be doing this late in the release cycle (I wouldn't either).
+
+patch -p1 < $CWD/dlopen_hack.diff
+
 sed -i "s/-pedantic/$SLKCFLAGS/" config.mk
+sed -i '/-fdiagnostics-color/d' colors.mk
 
 make LIBDIR=/usr/lib$LIBDIRSUFFIX
 make install LIBDIR=/usr/lib$LIBDIRSUFFIX MANPREFIX=/usr/man DESTDIR=$PKG RSTTOMAN=""
@@ -101,8 +139,9 @@ cat $CWD/$PRGNAM.SlackBuild > $PKG/usr/doc/$PRGNAM-$VERSION/$PRGNAM.SlackBuild
 
 # Now build the plugin.
 cd $TMP
+
 # Hack, lets #include <zathura/document.h> in pdf.h work with an uninstalled
-# copy of zathura by saying "-I.."
+# copy of zathura by saying "-I../zathura"
 rm -f $PRGNAM
 ln -s $PRGNAM-$VERSION $PRGNAM
 
@@ -116,15 +155,20 @@ find -L . \
  \( -perm 666 -o -perm 664 -o -perm 600 -o -perm 444 -o -perm 440 -o -perm 400 \) \
  -exec chmod 644 {} \;
 
-# ZATHURA_VERSION_CHECK=0 shouldn't be required :(
+# ZATHURA_VERSION_CHECK=0 is required because zathura.pc isn't installed.
 
+PLUGDIR=/usr/lib$LIBDIRSUFFIX/$PRGNAM
 sed -i "s/-fPIC/$SLKCFLAGS/" config.mk
 make install \
-  ZATHURA_INC=-I.. \
-  PLUGINDIR=/usr/lib$LIBDIRSUFFIX/$PRGNAM \
+  VERBOSE=1 \
+  ZATHURA_INC=-I../zathura \
+  PLUGINDIR=$PLUGDIR/pdf-poppler \
   DESTDIR=$PKG \
+  ZATHURA_GTK_VERSION=3 \
   ZATHURA_VERSION_CHECK=0
-strip $PKG/usr/lib$LIBDIRSUFFIX/$PRGNAM/*.so
+strip $PKG/$PLUGDIR/pdf-poppler/*.so
+
+ln -s pdf-poppler/pdf.so $PKG/$PLUGDIR/pdf.so
 
 # icon converted from https://pwmt.org/img/fav.ico
 mkdir -p $PKG/usr/share/pixmaps
