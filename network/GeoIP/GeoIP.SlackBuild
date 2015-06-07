@@ -5,6 +5,7 @@
 # Copyright 2007-2010 Yalla-One <yallaone@gmail.com>
 # Copyright 2011 markus reichelt <slackbuilds@mareichelt.de> 0xCCEEF115
 # Copyright 2011 Niels Horn, Rio de Janeiro, RJ, Brazil
+# Copyright 2015 POQDavid <poq-david@live.com>
 # All rights reserved.
 #
 # Redistribution and use of this script, with or without modification, is
@@ -26,8 +27,9 @@
 
 # revision date 2011/08/31
 
+
 PRGNAM=GeoIP
-VERSION=${VERSION:-1.5.1}
+VERSION=${VERSION:-1.6.5}
 BUILD=${BUILD:-1}
 TAG=${TAG:-_SBo}
 
@@ -43,20 +45,6 @@ CWD=$(pwd)
 TMP=${TMP:-/tmp/SBo}
 PKG=$TMP/package-$PRGNAM
 OUTPUT=${OUTPUT:-/tmp}
-
-if [ "$ARCH" = "i486" ]; then
-  SLKCFLAGS="-O2 -march=i486 -mtune=i686"
-  LIBDIRSUFFIX=""
-elif [ "$ARCH" = "i686" ]; then
-  SLKCFLAGS="-O2 -march=i686 -mtune=i686"
-  LIBDIRSUFFIX=""
-elif [ "$ARCH" = "x86_64" ]; then
-  SLKCFLAGS="-O2 -fPIC"
-  LIBDIRSUFFIX="64"
-else
-  SLKCFLAGS="-O2"
-  LIBDIRSUFFIX=""
-fi
 
 set -e
 
@@ -76,43 +64,43 @@ find -L . \
 # We need to update the configuration files in this tarball...
 autoreconf -i
 
-CFLAGS="$SLKCFLAGS" \
-CXXFLAGS="$SLKCFLAGS" \
+
+ac_cv_func_malloc_0_nonnull=yes \
+ac_cv_func_realloc_0_nonnull=yes \
+CFLAGS="-O2" \
+CXXFLAGS="-O2" \
 ./configure \
-  --prefix=/usr \
-  --libdir=/usr/lib${LIBDIRSUFFIX} \
-  --sysconfdir=/etc \
-  --datadir=/usr/share \
-  --localstatedir=/var \
-  --mandir=/usr/man \
+  --prefix=/${PREFIX} \
+  --libdir=/${PREFIX}/lib${LIBDIRSUFFIX} \
+  --sysconfdir=/${PREFIX}/etc \
+  --datadir=/${PREFIX}/share \
+  --localstatedir=/${PREFIX}/var \
+  --mandir=/${PREFIX}/man \
   --disable-static \
-  --build=$ARCH-slackware-linux
+  --host=${HOST_TRIPLET} \
+  --build=${BUILD_TRIPLET} \
+  --with-gnu-ld
 
 make
 make install DESTDIR=$PKG
 
-# Let's not clobber config files
-mv $PKG/etc/GeoIP.conf $PKG/etc/GeoIP.conf.new
 
-# Other distros (and some other software) look in /var/lib/GeoIP/
-mkdir -p $PKG/var/lib
-mv $PKG/usr/share/GeoIP $PKG/var/lib
-ln -s ../../var/lib/GeoIP $PKG/usr/share/GeoIP
+find $PKG | xargs file | grep -e "executable" -e "shared object" | grep ${HOST_EXE_FORMAT} \
+  | cut -f 1 -d : | xargs ${HOST_STRIP} --strip-unneeded 2> /dev/null || true
 
-find $PKG | xargs file | grep -e "executable" -e "shared object" | grep ELF \
-  | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+find $PKG/${PREFIX}/man -type f -exec gzip -9 {} \;
 
-find $PKG/usr/man -type f -exec gzip -9 {} \;
+mkdir -p $PKG/${PREFIX}/doc/$PRGNAM-$VERSION
+#cp -a \
+ # AUTHORS COPYING ChangeLog INSTALL README TODO \
+    #$PKG/${PREFIX}/doc/$PRGNAM-$VERSION
+cat $CWD/$PRGNAM.SlackBuild > $PKG/${PREFIX}/doc/$PRGNAM-$VERSION/$PRGNAM.SlackBuild
 
-mkdir -p $PKG/usr/doc/$PRGNAM-$VERSION
-cp -a \
-  AUTHORS COPYING ChangeLog INSTALL README TODO \
-    $PKG/usr/doc/$PRGNAM-$VERSION
-cat $CWD/$PRGNAM.SlackBuild > $PKG/usr/doc/$PRGNAM-$VERSION/$PRGNAM.SlackBuild
-
-mkdir -p $PKG/install
-cat $CWD/slack-desc > $PKG/install/slack-desc
-cat $CWD/doinst.sh > $PKG/install/doinst.sh
-
-cd $PKG
-/sbin/makepkg -l y -c n $OUTPUT/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.${PKGTYPE:-tgz}
+cat ${CWD}/${PRGNAM}.yypkg.script | sed \
+  -e "s/%{PKG}/${PRGNAM}/" \
+  -e "s/%{HST}/${HOST_TRIPLET}/" \
+  -e "s/%{TGT}//" \
+  -e "s/%{VER}/${VERSION}/" \
+  -e "s/%{BUILD}/${BUILD}/" \
+  -e "s/%{DESCR}/${DESCR:-"No description"}/" \
+  | yypkg --makepkg --output ${YYOUTPUT} --script - --directory "${PKG}/${PREFIX}"
