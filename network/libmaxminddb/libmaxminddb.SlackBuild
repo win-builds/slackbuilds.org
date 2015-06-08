@@ -59,8 +59,7 @@ find -L . \
 
 
 sed -i \
-  -e '/#include <Winsock2.h>/ d' \
-  -e '/^#ifdef _WIN32 #include <Winsock2.h> #endif/ d' \
+  -e 's/<Winsock2.h>/<winsock2.h>/' \
   t/maxminddb_test_helper.h
 
 ac_cv_func_malloc_0_nonnull=yes \
