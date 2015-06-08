@@ -1,0 +1,6 @@
+(((name %{PKG}) (size_expanded (TB 48))
+  (version (%{VER} %{BUILD}))
+  (packager_email poq-david@live.com) (packager_name "POQDavid")
+  (description "%{DESCR}") (host %{HST}) (target (%{TGT})) (predicates ())
+  (comments ()))
+ () ())
