@@ -15,5 +15,5 @@ GeoIP: about their Internet visitors in real-time.
 GeoIP: To name a few applications, GeoIP can be used for delivering
 GeoIP: customized content, targeted ads and web log statistics.
 GeoIP:
-GeoIP: Homepage: http://www.maxmind.com/download/geoip/api/c/
+GeoIP: Homepage: https://github.com/maxmind/geoip-api-c
 GeoIP:
